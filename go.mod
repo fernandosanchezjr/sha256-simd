@@ -1,3 +1,3 @@
-module github.com/minio/sha256-simd
+module github.com/fernandosanchezjr/sha256-simd
 
-go 1.12
+go 1.14
