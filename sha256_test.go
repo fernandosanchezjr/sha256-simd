@@ -50,6 +50,7 @@
 package sha256
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"runtime"
@@ -2331,5 +2332,20 @@ func BenchmarkHash(b *testing.B) {
 			}
 			blockfunc = blockfuncSaved
 		}
+	}
+}
+
+func TestMidstate(t *testing.T) {
+	plainText := "b4076799ff727758f5b7ad0830d093671bffc34d5edbfa6afcc90820fd224111deb509351c2098173a0b99923e8bebf2b0e" +
+		"805de7cdc13b41ea33e6048abb056"
+
+	plainData, err := hex.DecodeString(plainText)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result := Midstate(plainData, binary.LittleEndian)
+	if hex.EncodeToString(result) != "321885610e7c9a707dce85830158d5663f80a0fa8841afc73d469a80c4a70af4" {
+		t.Fatal()
 	}
 }

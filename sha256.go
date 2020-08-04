@@ -17,6 +17,7 @@
 package sha256
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"hash"
@@ -114,9 +115,28 @@ func New() hash.Hash {
 func Sum256(data []byte) (result [Size]byte) {
 	var d digest
 	d.Reset()
-	d.Write(data)
+	_, _ = d.Write(data)
 	result = d.checkSum()
 	return
+}
+
+// Midstate - calculate SHA256 midstate for first 64 bytes
+func Midstate(data []byte, outputOrder binary.ByteOrder) []byte {
+	var d digest
+	inputBuf := bytes.NewBuffer(data[:64])
+	hashBuf := bytes.NewBuffer(make([]byte, 0, 64))
+	var tmp uint32
+	for i := 0; i < 16; i++ {
+		binary.Read(inputBuf, binary.LittleEndian, &tmp)
+		binary.Write(hashBuf, binary.BigEndian, tmp)
+	}
+	buf := bytes.NewBuffer(make([]byte, 0, Size))
+	d.Reset()
+	_, _ = d.Write(hashBuf.Bytes())
+	for i := 0; i < 8; i++ {
+		_ = binary.Write(buf, outputOrder, d.h[i])
+	}
+	return buf.Bytes()
 }
 
 // Return size of checksum
