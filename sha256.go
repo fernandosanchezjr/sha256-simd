@@ -17,7 +17,6 @@
 package sha256
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"hash"
@@ -121,22 +120,25 @@ func Sum256(data []byte) (result [Size]byte) {
 }
 
 // Midstate - calculate SHA256 midstate for first 64 bytes
-func Midstate(data []byte, outputOrder binary.ByteOrder) []byte {
+func Midstate(data []byte) [32]byte {
 	var d digest
-	inputBuf := bytes.NewBuffer(data[:64])
-	hashBuf := bytes.NewBuffer(make([]byte, 0, 64))
-	var tmp uint32
+	var r [Size]byte
+	var littleEndianInput [BlockSize]byte
 	for i := 0; i < 16; i++ {
-		binary.Read(inputBuf, binary.LittleEndian, &tmp)
-		binary.Write(hashBuf, binary.BigEndian, tmp)
+		littleEndianInput[i*4] = data[(i*4)+3]
+		littleEndianInput[(i*4)+1] = data[(i*4)+2]
+		littleEndianInput[(i*4)+2] = data[(i*4)+1]
+		littleEndianInput[(i*4)+3] = data[(i * 4)]
 	}
-	buf := bytes.NewBuffer(make([]byte, 0, Size))
 	d.Reset()
-	_, _ = d.Write(hashBuf.Bytes())
+	_, _ = d.Write(littleEndianInput[:])
 	for i := 0; i < 8; i++ {
-		_ = binary.Write(buf, outputOrder, d.h[i])
+		r[(i * 4)] = byte(d.h[i] & 0xff)
+		r[(i*4)+1] = byte((d.h[i] >> 8) & 0xff)
+		r[(i*4)+2] = byte((d.h[i] >> 16) & 0xff)
+		r[(i*4)+3] = byte((d.h[i] >> 24) & 0xff)
 	}
-	return buf.Bytes()
+	return r
 }
 
 // Return size of checksum

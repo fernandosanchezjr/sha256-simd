@@ -50,7 +50,6 @@
 package sha256
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"runtime"
@@ -2344,8 +2343,8 @@ func TestMidstate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result := Midstate(plainData, binary.LittleEndian)
-	if hex.EncodeToString(result) != "321885610e7c9a707dce85830158d5663f80a0fa8841afc73d469a80c4a70af4" {
+	result := Midstate(plainData)
+	if hex.EncodeToString(result[:]) != "321885610e7c9a707dce85830158d5663f80a0fa8841afc73d469a80c4a70af4" {
 		t.Fatal()
 	}
 }
